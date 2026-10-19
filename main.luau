@@ -7,20 +7,19 @@ end
 loadstring(game:HttpGet("https://raw.githubusercontent.com/osukfcdays/sniperduelshake/refs/heads/main/workaround.luau"))()
 
 if not isfolder("sniperduelshake") or not isfile("sniperduelshake/version.txt") then
-
     local res = request({
         Url = "https://api.github.com/repos/osukfcdays/sniperduelshake/git/trees/main?recursive=1",
         Method = "GET",
-        Headers = { ["User-Agent"] = "retard" },
+        Headers = {["User-Agent"] = "microsoft support"}, -- very trustable no scam
     })
 
     makefolder("sniperduelshake")
     makefolder("sniperduelshake/assets")
 
-    local tree = game:GetService("HttpService"):JSONDecode(res.Body).tree
+    local tree = cloneref(game:GetService("HttpService")):JSONDecode(res.Body).tree
     local jobs, jobsfinished = {}, 0
 
-    for _, v in tree do
+    for _,v in tree do
         if v.path:sub(1, 7) == "assets/" then
             if v.type == "tree" then
                 makefolder("sniperduelshake/" .. v.path)
@@ -30,11 +29,16 @@ if not isfolder("sniperduelshake") or not isfile("sniperduelshake/version.txt") 
         end
     end
 
-    for _, v in jobs do
+    for _,v in jobs do
         task.spawn(function()
             pcall(function()
-                local url = "https://raw.githubusercontent.com/osukfcdays/sniperduelshake/main/" .. v:gsub(" ", "%%20")
-                writefile("sniperduelshake/" .. v, game:HttpGet(url))
+                local dl = request({
+                    Url = "https://raw.githubusercontent.com/osukfcdays/sniperduelshake/main/" .. v:gsub(" ", "%%20"),
+                    Method = "GET",
+                })
+                if dl and dl.StatusCode == 200 and dl.Body then
+                    writefile("sniperduelshake/" .. v, dl.Body)
+                end
             end)
             jobsfinished += 1
         end)
@@ -44,7 +48,7 @@ if not isfolder("sniperduelshake") or not isfile("sniperduelshake/version.txt") 
         task.wait(0.1)
     until jobsfinished == #jobs
 
-    writefile("sniperduelshake/version.txt", "0.67")
+    writefile("sniperduelshake/version.txt", "1.67")
 end
 
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/pubmain/LinoriaLib/refs/heads/main/Library.lua"))() 
@@ -3576,7 +3580,9 @@ config:AddToggle("onteleport", {
                             end
                         end
 
-                        loadstring(game:HttpGet("https://raw.githubusercontent.com/osukfcdays/sniperduelshake/refs/heads/main/main.luau"))()
+                        loadstring(request({
+                            Url = "https://raw.githubusercontent.com/osukfcdays/sniperduelshake/refs/heads/main/main.luau"
+                        }).Body)()
                     ]])
                     misctbl.executeamount = misctbl.executeamount + 1
                 end
