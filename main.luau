@@ -1,4 +1,3 @@
-local EncodingService = game:GetService("EncodingService")
 -- i just use a do end for everything to isolate tables and variables i dont want taking up registers
 
 if string.find(identifyexecutor(), "Xeno") or string.find(identifyexecutor(), "Solara") then
@@ -321,57 +320,55 @@ lightingtbl.newatmosphere = table.clone(lightingtbl.oldatmosphere)
 lightingtbl.newcolorcorrection = table.clone(lightingtbl.oldcolorcorrection)
 lightingtbl.newsunrays = table.clone(lightingtbl.oldsunrays)
 
-
 local function updatehighlights()
-    local match = modules.matchcontroller.CurrentMatch
+    if not modules.matchcontroller.CurrentMatch then return end
 
-    if not match then return end
-    if not match.Players then return end
+    if modules.matchcontroller.CurrentMatch and modules.matchcontroller.CurrentMatch.Players then
+        for _,p in modules.matchcontroller.CurrentMatch.Players do
+            if p and p:IsA("Player") and p ~= localplayer then
+                if not p.Character then continue end
 
-    for _,p in match do
-        if p and p:IsA("Player") and p ~= localplayer then
-            if not p.Character then continue end
+                local highlight = highlights:FindFirstChild(p.Name)
 
-            local highlight = highlights:FindFirstChild(p.Name)
-
-            if highlight and highlight.Adornee ~= p.Character then
-                highlight:Destroy()
-            end
-
-            if highlight and highlight.Adornee == p.Character then
-                if modules.matchcontroller:IsPlayerFriendly(p) then
-                    highlight.FillColor = highlighttbl.teamfillcolor
-                    highlight.OutlineColor = highlighttbl.teamoutlinecolor
-                    highlight.FillTransparency = highlighttbl.teamfilltransparency
-                    highlight.OutlineTransparency = highlighttbl.teamoutlinetransparency
-                    highlight.Enabled = highlighttbl.teamhighlight
-                else
-                    highlight.FillColor = highlighttbl.enemyfillcolor
-                    highlight.OutlineColor = highlighttbl.enemyoutlinecolor
-                    highlight.FillTransparency = highlighttbl.enemyfilltransparency
-                    highlight.OutlineTransparency = highlighttbl.enemyoutlinetransparency
-                    highlight.Enabled = highlighttbl.enemyhighlight
+                if highlight and highlight.Adornee ~= p.Character then
+                    highlight:Destroy()
                 end
-            end
 
-            if not highlight then
-                highlight = Instance.new("Highlight", highlights)
-                highlight.Name = p.Name
-                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                highlight.Adornee = p.Character
+                if highlight and highlight.Adornee == p.Character then
+                    if modules.matchcontroller:IsPlayerFriendly(p) then
+                        highlight.FillColor = highlighttbl.teamfillcolor
+                        highlight.OutlineColor = highlighttbl.teamoutlinecolor
+                        highlight.FillTransparency = highlighttbl.teamfilltransparency
+                        highlight.OutlineTransparency = highlighttbl.teamoutlinetransparency
+                        highlight.Enabled = highlighttbl.teamhighlight
+                    else
+                        highlight.FillColor = highlighttbl.enemyfillcolor
+                        highlight.OutlineColor = highlighttbl.enemyoutlinecolor
+                        highlight.FillTransparency = highlighttbl.enemyfilltransparency
+                        highlight.OutlineTransparency = highlighttbl.enemyoutlinetransparency
+                        highlight.Enabled = highlighttbl.enemyhighlight
+                    end
+                end
 
-                if modules.matchcontroller:IsPlayerFriendly(p) then
-                    highlight.FillColor = highlighttbl.teamfillcolor
-                    highlight.OutlineColor = highlighttbl.teamoutlinecolor
-                    highlight.FillTransparency = highlighttbl.teamfilltransparency
-                    highlight.OutlineTransparency = highlighttbl.teamoutlinetransparency
-                    highlight.Enabled = highlighttbl.teamhighlight
-                else
-                    highlight.FillColor = highlighttbl.enemyfillcolor
-                    highlight.OutlineColor = highlighttbl.enemyoutlinecolor
-                    highlight.FillTransparency = highlighttbl.enemyfilltransparency
-                    highlight.OutlineTransparency = highlighttbl.enemyoutlinetransparency
-                    highlight.Enabled = highlighttbl.enemyhighlight
+                if not highlight then
+                    highlight = Instance.new("Highlight", highlights)
+                    highlight.Name = p.Name
+                    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    highlight.Adornee = p.Character
+
+                    if modules.matchcontroller:IsPlayerFriendly(p) then
+                        highlight.FillColor = highlighttbl.teamfillcolor
+                        highlight.OutlineColor = highlighttbl.teamoutlinecolor
+                        highlight.FillTransparency = highlighttbl.teamfilltransparency
+                        highlight.OutlineTransparency = highlighttbl.teamoutlinetransparency
+                        highlight.Enabled = highlighttbl.teamhighlight
+                    else
+                        highlight.FillColor = highlighttbl.enemyfillcolor
+                        highlight.OutlineColor = highlighttbl.enemyoutlinecolor
+                        highlight.FillTransparency = highlighttbl.enemyfilltransparency
+                        highlight.OutlineTransparency = highlighttbl.enemyoutlinetransparency
+                        highlight.Enabled = highlighttbl.enemyhighlight
+                    end
                 end
             end
         end
@@ -3416,10 +3413,9 @@ cons.viewmodelgetcon = camera.ChildAdded:Connect(function(v)
     end
 end)
 
-cons.espcon = game:GetService("RunService").RenderStepped:Connect(function()
+cons.espcon = runserv.RenderStepped:Connect(function()
     if not modules.matchcontroller.CurrentMatch then return end
     if os.clock() - misctbl.lastupdate < 0.25 then return end
-    
     misctbl.lastupdate = os.clock()
     updatehighlights()
 end)
