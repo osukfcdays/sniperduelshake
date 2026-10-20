@@ -332,6 +332,7 @@ local function updatehighlights()
 
                 if highlight and highlight.Adornee ~= p.Character then
                     highlight:Destroy()
+                    highlight = nil
                 end
 
                 if highlight and highlight.Adornee == p.Character then
