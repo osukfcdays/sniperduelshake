@@ -55,9 +55,6 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/pubma
 local thememanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/pubmain/LinoriaLib/refs/heads/main/addons/ThemeManager.lua"))() 
 local savemanager = loadstring(game:HttpGet("https://raw.githubusercontent.com/pubmain/LinoriaLib/refs/heads/main/addons/SaveManager.lua"))() 
 
-local options = library.Options
-local toggles = library.Toggles
-
 library.ToggleKeybind = "Del"
 
 local window = library:CreateWindow({
@@ -94,7 +91,7 @@ local atmospherevisuals = tabs.worldvisuals:AddRightTabbox()
 local bloomvisuals = tabs.worldvisuals:AddRightTabbox()
 
 local maintab = miscweapons:AddTab("main")
---local knifetab = weaponvisuals:AddTab("knife") -- idk what to even add rn
+--local knifetab = miscweapons:AddTab("knife") -- idk what to even add rn
 local guntab = miscweapons:AddTab("gun")
 
 local lighting = cloneref(game:GetService("Lighting")) -- use cloneref here but then NEVER again, opsex level god
@@ -132,6 +129,7 @@ local modules = {
     networkshared = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Shared"):WaitForChild("NetworkShared")),
     miscremotelistener = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MiscRemoteListener")),
     killeffectdefault = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("Effects"):WaitForChild("KillEffectsConfig"))._DEFAULT,
+    loadcharacterviewport = debug.getupvalue(require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("UIController")).SetupMatchPlayers, 4),
 }
 
 local ogfuncs = {
@@ -171,14 +169,10 @@ local cons = {
     espcon = nil,
     antiaimcon = nil,
     nojumpcooldowncon = nil,
-    characterswappercon = nil,
-    hitlogscon = nil,
     aspectratiocon = nil,
     roundendcon = nil,
     roundstartcon = nil,
     knifekillcon = nil,
-    holsterbakecon = nil,
-    holsterchildcon = nil,
     cloudcon = nil,
 }
 
@@ -303,10 +297,10 @@ local viewmodel = {
 }
 
 local misctbl = {
-    executeamount = 0, -- prevent shit from executing 3 times when doing qot
     autoreload = false,
     lastreload = 0,
     lastupdate = 0,
+    executeamount = 0,
     firstpersoncframe = nil,
 }
 
@@ -320,22 +314,20 @@ lightingtbl.newatmosphere = table.clone(lightingtbl.oldatmosphere)
 lightingtbl.newcolorcorrection = table.clone(lightingtbl.oldcolorcorrection)
 lightingtbl.newsunrays = table.clone(lightingtbl.oldsunrays)
 
+
 local function updatehighlights()
     if not modules.matchcontroller.CurrentMatch then return end
 
     if modules.matchcontroller.CurrentMatch and modules.matchcontroller.CurrentMatch.Players then
         for _,p in modules.matchcontroller.CurrentMatch.Players do
-            if p and p:IsA("Player") and p ~= localplayer then
-                if not p.Character then continue end
-
+            if p and p:IsA("Player") and p.Character and p ~= localplayer then
                 local highlight = highlights:FindFirstChild(p.Name)
 
-                if highlight and highlight.Adornee ~= p.Character then
+                if highlight and highlight.Adornee == nil then
                     highlight:Destroy()
-                    highlight = nil
                 end
 
-                if highlight and highlight.Adornee == p.Character then
+                if highlight and highlight.Adornee ~= nil then
                     if modules.matchcontroller:IsPlayerFriendly(p) then
                         highlight.FillColor = highlighttbl.teamfillcolor
                         highlight.OutlineColor = highlighttbl.teamoutlinecolor
@@ -376,6 +368,18 @@ local function updatehighlights()
     end
 end
 
+local function setplatform(platform)
+    local buffer = modules.networkshared.Constants.Platforms[platform]
+    local number = (platform == "Desktop" and 1) or (platform == "Mobile" and 2) or 3
+    local emoji = modules.networkshared.Constants.PlatformEmojis[number].emoji
+
+    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Other"):WaitForChild("GetPlatform").OnClientInvoke = function() return buffer end
+    modules.miscremotelistener.GetPlatform = function() return buffer end -- ts lwk just making it return everyones device as spoofed one i think
+    modules.settingsmain.GetPlatform = function() return platform end
+
+    localplayer:SetAttribute("Platform", number)
+end
+
 local function valuecheck(property, a, b)
     if a == b then return true end
 
@@ -394,19 +398,7 @@ local function valuecheck(property, a, b)
     return false
 end
 
-local function setplatform(platform)
-    local buffer = modules.networkshared.Constants.Platforms[platform]
-    local number = (platform == "Desktop" and 1) or (platform == "Mobile" and 2) or 3
-    local emoji = modules.networkshared.Constants.PlatformEmojis[number].emoji
-
-    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Other"):WaitForChild("GetPlatform").OnClientInvoke = function() return buffer end
-    modules.miscremotelistener.GetPlatform = function() return buffer end -- ts lwk just making it return everyones device as spoofed one i think
-    modules.settingsmain.GetPlatform = function() return platform end
-
-    localplayer:SetAttribute("Platform", number)
-end
-
-do -- bypasses the env check added to the skinconfig module
+do
     local meta = getrawmetatable(modules.skinconfig)
     debug.setupvalue(debug.getupvalue(getrawmetatable(modules.skinconfig).__index, 1), 1, true)
 end
@@ -472,7 +464,6 @@ do
         params.FilterDescendantsInstances = blacklist
     end)
 
-
     local function getverticies(character)
         if not character then return nil end
 
@@ -502,7 +493,6 @@ do
                 end
             end
         end
-
         return nil, nil
     end
 
@@ -523,7 +513,7 @@ do
     end
 
     local function reloadweapon(config)
-        if misctbl.autoreload and os.clock() - misctbl.lastreload >= 3 then -- can just fetch thru weapon config but the global reload time is 3 seconds
+        if misctbl.autoreload and os.clock() - misctbl.lastreload >= 3 then 
             misctbl.lastreload = os.clock()
 
             local fakeself = table.clone(config)
@@ -544,7 +534,7 @@ do
         end
     end
 
-    local function getgunconfig(tool) -- need to fetch config for fuckass autofire
+    local function getgunconfig(tool)
 		if not tool then return nil end
 
 		if modules.toolcontroller and modules.toolcontroller.ToolMaids then
@@ -584,8 +574,7 @@ do
 
                 if not root then continue end
                 if not hum then continue end
-
-                if hum and hum:GetState() == Enum.HumanoidStateType.Dead or hum and hum:HasTag("Dead") then continue end -- hum.Health wont work for this use. use hastag() or getstate()
+                if hum and hum:GetState() == Enum.HumanoidStateType.Dead or hum and hum:HasTag("Dead") then continue end
 
                 if root and hum then 
                     if silentmode == "mouse" then
@@ -610,7 +599,7 @@ do
                         local distance = (root.Position - selfroot.Position).Magnitude
                         local visiblepos, neworigin = getverticies(p.Character)
 
-                        if not visiblepos or not neworigin then continue end
+                        if not visiblepos then continue end
 
                         if maxdistance == 0 and distance < bestdistance then
                             bestdistance = distance
@@ -633,16 +622,15 @@ do
         return besthit, bestenemy, bestorigin
     end
 
-    modules.weaponcontroller.Fire = function(self, ...) -- scuffed asf
+    modules.weaponcontroller.Fire = function(self, ...)
         if silentaim and misctbl.autoreload then
-            local hitpos, enemy, shiftedorigin = getbestenemy()
+            local hitpos, enemy, neworigin = getbestenemy()
 
-            if hitpos and enemy and shiftedorigin then
+            if hitpos and enemy and neworigin then
                 task.spawn(function()
                     reloadweapon(self)
                 end)
-                
-                return fireweapon(self, hitpos, shiftedorigin)
+                return fireweapon(self, hitpos, neworigin)
             end
 
             reloadweapon(self)
@@ -650,10 +638,10 @@ do
         end
 
         if silentaim then
-            local hitpos, enemy, shiftedorigin = getbestenemy()
+            local hitpos, enemy, neworigin = getbestenemy()
 
-            if hitpos and enemy and shiftedorigin then
-                return fireweapon(self, hitpos, shiftedorigin)
+            if hitpos and enemy and neworigin then
+                return fireweapon(self, hitpos, neworigin)
             end
 
             return ogfuncs.ogfire(self, ...)
@@ -711,7 +699,7 @@ do
 
                     if (os.clock()- config.LastFire + - 0.44) < 0.8 then return end -- idk what the fuck this is bro albert and einstein type shit
 
-                    local hitpos, enemy, origin = getbestenemy()
+                    local hitpos, enemy, shiftedorigin = getbestenemy()
 
                     if not hitpos or not enemy then
                         lasttarget = nil
@@ -728,7 +716,7 @@ do
 
                     config.LastFire = os.clock()
 
-                    fireweapon(config, hitpos, origin)
+                    fireweapon(config, hitpos, shiftedorigin)
                     reloadweapon(config)
                 end)
             else
@@ -966,13 +954,10 @@ do
 
     local function teleport(root)
         if not localplayer.Character then return end
-
         local selfroot = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
-
         if not selfroot or not root or not root.Parent then return end
 
         local safepos = findsafespot(root, localplayer.Character, root.Parent)
-
         if not safepos then return end
 
         selfroot.CFrame = CFrame.lookAt(safepos, root.Position)
@@ -983,11 +968,9 @@ do
 
         local hum = localplayer and localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid")
         local backpack = localplayer:FindFirstChildOfClass("Backpack")
-
         if not (localplayer.Character and hum and backpack) then return end
 
         local held = localplayer.Character:FindFirstChildOfClass("Tool")
-
         if held and held:HasTag("Melee") then
             return held
         end
@@ -995,7 +978,6 @@ do
         for _, t in backpack:GetChildren() do
             if t:IsA("Tool") and t:HasTag("Melee") then
                 local toolbar = modules.uitoolbar and modules.uitoolbar.currentToolbar
-
                 if toolbar then
                     if held then
                         toolbar:ToolUnequipped(held)
@@ -1013,7 +995,6 @@ do
         if not knifekillall or not knifebot then return end
         if not modules.matchcontroller.CurrentMatch then return end
         if modules.matchcontroller.CurrentMatch.CurRoundCnt == 1 then return end
-
         teleporttospawn()
     end)
 
@@ -1565,8 +1546,9 @@ do
         if instantequip then
             local ogtime = self.Config.EquipTime
             self.Config.EquipTime = 0
+            local result = ogfuncs.ogweaponequip(self)
             self.Config.EquipTime = ogtime
-            return ogfuncs.ogweaponequip(self)
+            return result
         end
         return ogfuncs.ogweaponequip(self)
     end
@@ -1575,8 +1557,9 @@ do
         if instantequip then
             local ogtime = self.Config.EquipTime
             self.Config.EquipTime = 0
+            local result = ogfuncs.ogmeleeequip(self)
             self.Config.EquipTime = ogtime
-            return ogfuncs.ogmeleeequip(self)
+            return result
         end
         return ogfuncs.ogmeleeequip(self)
     end
@@ -1590,22 +1573,29 @@ do
         end
     })
 
-    modules.cameracontroller.ChangeFOVWithTag = function(self, tag, v3, tweentbl)
+    modules.cameracontroller.ChangeFOVWithTag = function(self, tag, v3, v4)
         if instantscope and string.find(tag, "Aim") then
-            tweentbl = nil
+            v4 = nil
         end
 
-        return ogfuncs.ogfovtag(self, tag, v3, tweentbl)
+        return ogfuncs.ogfovtag(self, tag, v3, v4)
     end
 
     modules.weaponcontroller.Aim = function(self, state)
         if instantscope and state then
             local ogtime = self.Config.AimIn and self.Config.AimIn.Time
 
-            self.Config.AimIn.Time = 0
-            self.Config.AimIn.Time = ogtime
+            if ogtime then
+                self.Config.AimIn.Time = 1e-4
+            end
+            
+            local result = ogfuncs.ogaim(self, state)
 
-            return ogfuncs.ogaim(self, state)
+            if ogtime then
+                self.Config.AimIn.Time = ogtime
+            end
+
+            return result
         else
             return ogfuncs.ogaim(self, state)
         end
@@ -1631,9 +1621,8 @@ do
 end
 
 do
-    modules.viewmodelcontroller.new = function(self)
-        local newconfig = ogfuncs.ogviewmodel(self)
-
+    modules.viewmodelcontroller.new = function(config)
+        local newconfig = ogfuncs.ogviewmodel(config)
         task.delay(0.01, function()
             if not newconfig.Dead and viewmodel.override then
                 newconfig.offset = CFrame.new(viewmodel.viewmodelx, viewmodel.viewmodely, viewmodel.viewmodelz)
@@ -1641,7 +1630,6 @@ do
                 newconfig.offset = CFrame.new(0.1, -1.5, 0.15) 
             end
         end)
-
         return newconfig
     end
 
@@ -1943,103 +1931,105 @@ do
     })
 end
 
-playervisuals:AddToggle('enemyhighlight',{
-    Default = highlighttbl.enemyhighlight,
-    Text = "enemy highlight",
-    Callback = function(v)
-        highlighttbl.enemyhighlight = v
-    end
-})
+do
+    playervisuals:AddToggle('enemyhighlight',{
+        Default = highlighttbl.enemyhighlight,
+        Text = "enemy highlight",
+        Callback = function(v)
+            highlighttbl.enemyhighlight = v
+        end
+    })
 
-playervisuals:AddSlider('enemyfilltransparency',{
-    Min = -0,
-    Max = 1,
-    Rounding = 1,
-    Default = highlighttbl.enemyfilltransparency,
-    Compact = true,
-    Text = "enemy fill transparency",
-    Callback = function(v) 
-        highlighttbl.enemyfilltransparency = v
-    end
-})
+    playervisuals:AddSlider('enemyfilltransparency',{
+        Min = -0,
+        Max = 1,
+        Rounding = 1,
+        Default = highlighttbl.enemyfilltransparency,
+        Compact = true,
+        Text = "enemy fill transparency",
+        Callback = function(v) 
+            highlighttbl.enemyfilltransparency = v
+        end
+    })
 
-playervisuals:AddSlider('enemyoutlinetransparency',{
-    Min = 0,
-    Max = 1,
-    Rounding = 1,
-    Default = highlighttbl.enemyoutlinetransparency,
-    Compact = true,
-    Text = "enemy outline transparency",
-    Callback = function(v) 
-        highlighttbl.enemyoutlinetransparency = v
-    end
-})
+    playervisuals:AddSlider('enemyoutlinetransparency',{
+        Min = 0,
+        Max = 1,
+        Rounding = 1,
+        Default = highlighttbl.enemyoutlinetransparency,
+        Compact = true,
+        Text = "enemy outline transparency",
+        Callback = function(v) 
+            highlighttbl.enemyoutlinetransparency = v
+        end
+    })
 
-playervisuals:AddLabel("enemy fill color"):AddColorPicker('enemyfillcolor',{
-    Default = highlighttbl.enemyfillcolor,
-    Title = "enemy fill color",
-    Callback = function(v) 
-        highlighttbl.enemyfillcolor = v
-    end
-})
+    playervisuals:AddLabel("enemy fill color"):AddColorPicker('enemyfillcolor',{
+        Default = highlighttbl.enemyfillcolor,
+        Title = "enemy fill color",
+        Callback = function(v) 
+            highlighttbl.enemyfillcolor = v
+        end
+    })
 
-playervisuals:AddLabel("enemy outline color"):AddColorPicker('enemyoutlinecolor',{
-    Default = highlighttbl.enemyoutlinecolor,
-    Title = "enemy outline color",
-    Callback = function(v) 
-        highlighttbl.enemyoutlinecolor = v
-    end
-})
+    playervisuals:AddLabel("enemy outline color"):AddColorPicker('enemyoutlinecolor',{
+        Default = highlighttbl.enemyoutlinecolor,
+        Title = "enemy outline color",
+        Callback = function(v) 
+            highlighttbl.enemyoutlinecolor = v
+        end
+    })
 
-playervisuals:AddDivider("team")
+    playervisuals:AddDivider("team")
 
-playervisuals:AddToggle('teamhighlight',{
-    Default = highlighttbl.teamhighlight,
-    Text = "team highlight",
-    Callback = function(v)
-        highlighttbl.teamhighlight = v
-    end
-})
+    playervisuals:AddToggle('teamhighlight',{
+        Default = highlighttbl.teamhighlight,
+        Text = "team highlight",
+        Callback = function(v)
+            highlighttbl.teamhighlight = v
+        end
+    })
 
-playervisuals:AddSlider('teamfilltransparency',{
-    Min = -0,
-    Max = 1,
-    Rounding = 1,
-    Default = highlighttbl.teamfilltransparency,
-    Compact = true,
-    Text = "team fill transparency",
-    Callback = function(v) 
-        highlighttbl.teamfilltransparency = v
-    end
-})
+    playervisuals:AddSlider('teamfilltransparency',{
+        Min = -0,
+        Max = 1,
+        Rounding = 1,
+        Default = highlighttbl.teamfilltransparency,
+        Compact = true,
+        Text = "team fill transparency",
+        Callback = function(v) 
+            highlighttbl.teamfilltransparency = v
+        end
+    })
 
-playervisuals:AddSlider('teamoutlinetransparency',{
-    Min = 0,
-    Max = 1,
-    Rounding = 1,
-    Default = highlighttbl.teamoutlinetransparency,
-    Compact = true,
-    Text = "team outline transparency",
-    Callback = function(v) 
-        highlighttbl.teamoutlinetransparency = v
-    end
-})
+    playervisuals:AddSlider('teamoutlinetransparency',{
+        Min = 0,
+        Max = 1,
+        Rounding = 1,
+        Default = highlighttbl.teamoutlinetransparency,
+        Compact = true,
+        Text = "team outline transparency",
+        Callback = function(v) 
+            highlighttbl.teamoutlinetransparency = v
+        end
+    })
 
-playervisuals:AddLabel("team fill color"):AddColorPicker('teamfillcolor',{
-    Default = highlighttbl.teamfillcolor,
-    Title = "team fill color",
-    Callback = function(v) 
-        highlighttbl.teamfillcolor = v
-    end
-})
+    playervisuals:AddLabel("team fill color"):AddColorPicker('teamfillcolor',{
+        Default = highlighttbl.teamfillcolor,
+        Title = "team fill color",
+        Callback = function(v) 
+            highlighttbl.teamfillcolor = v
+        end
+    })
 
-playervisuals:AddLabel("team outline color"):AddColorPicker('teamoutlinecolor',{
-    Default = highlighttbl.teamoutlinecolor,
-    Title = "team outline color",
-    Callback = function(v) 
-        highlighttbl.teamoutlinecolor = v
-    end
-})
+    playervisuals:AddLabel("team outline color"):AddColorPicker('teamoutlinecolor',{
+        Default = highlighttbl.teamoutlinecolor,
+        Title = "team outline color",
+        Callback = function(v) 
+            highlighttbl.teamoutlinecolor = v
+        end
+    })
+end
 
 do
     local queuetype = "Casual"
@@ -2197,9 +2187,9 @@ do
 end
 
 do
-    local aspectscale = 1
-
     miscmain:AddDivider("aspect ratio")
+
+    local aspectscale = 1
 
     miscmain:AddToggle('aspectratio', {
         Default = false,
@@ -2234,7 +2224,6 @@ do
             aspectscale = v
         end,
     })
-
 end
 
 do -- ts is beyond scuffed bro
@@ -2773,7 +2762,7 @@ do
         Func = function()
             library.Options.Ambient:SetValue(lightingtbl.oldlighting.Ambient)
             library.Options.OutdoorAmbient:SetValue(lightingtbl.oldlighting.OutdoorAmbient)
-            library.Options.Options.Brightness:SetValue(lightingtbl.oldlighting.Brightness)
+            library.Options.Brightness:SetValue(lightingtbl.oldlighting.Brightness)
             library.Options.ClockTime:SetValue(lightingtbl.oldlighting.ClockTime)
             library.Options.FogColor:SetValue(lightingtbl.oldlighting.FogColor)
             library.Options.FogStart:SetValue(lightingtbl.oldlighting.FogStart)
@@ -2782,7 +2771,7 @@ do
             library.Options.ColorShift_Top:SetValue(lightingtbl.oldlighting.ColorShift_Top)
             library.Options.ColorShift_Bottom:SetValue(lightingtbl.oldlighting.ColorShift_Bottom)
             library.Options.EnvironmentDiffuseScale:SetValue(lightingtbl.oldlighting.EnvironmentDiffuseScale)
-            library.Options.Optionsions.EnvironmentSpecularScale:SetValue(lightingtbl.oldlighting.EnvironmentSpecularScale)
+            library.Options.EnvironmentSpecularScale:SetValue(lightingtbl.oldlighting.EnvironmentSpecularScale)
             library.Options.ShadowSoftness:SetValue(lightingtbl.oldlighting.ShadowSoftness)
         end,
         DoubleClick = false,
@@ -3379,7 +3368,7 @@ do
             lightingtbl.oldclouds.Color = v
 
             if lightingtbl.cloudsoverride and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = v
+                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = v
             end
         end
     })
@@ -3414,7 +3403,7 @@ cons.viewmodelgetcon = camera.ChildAdded:Connect(function(v)
     end
 end)
 
-cons.espcon = runserv.RenderStepped:Connect(function()
+cons.espcon = game:GetService("RunService").RenderStepped:Connect(function()
     if not modules.matchcontroller.CurrentMatch then return end
     if os.clock() - misctbl.lastupdate < 0.25 then return end
     misctbl.lastupdate = os.clock()
@@ -3439,9 +3428,7 @@ cons.lightingcon = lighting.Changed:Connect(function(v)
     end
 
     if lightingtbl.lightingoverride and new ~= nil and not same then
-        lightingtbl.setting = true
         lighting[v] = new
-        lightingtbl.setting = false
     end
 end)
 
@@ -3673,7 +3660,7 @@ config:AddLabel("Menu Keybind"):AddKeyPicker("menukeybind", {
     Text = "Menu Keybind" 
 })
 
-library.ToggleKeybind = options.menukeybind
+library.ToggleKeybind = library.Options.menukeybind
 
 config:AddButton("Unload", function() library:Unload() end)
 
@@ -3688,27 +3675,25 @@ savemanager:LoadAutoloadConfig()
 library:OnUnload(function()
     runserv:UnbindFromRenderStep("firstpersoncframe")
 
-    if cons.antiaimcon then
-        cons.antiaimcon:Disconnect()
-        cons.antiaimcon = nil
-
-        if not modules.characterreplicationcontroller.SendingPackets and localplayer and localplayer.Character then
-            task.spawn(function()
-                modules.characterreplicationcontroller.StartSending(modules.characterreplicationcontroller, localplayer.Character)
-            end)
-
-            local root = localplayer and localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
-            local hum = localplayer and localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid")
-
-            if root and hum then
-                root.AssemblyLinearVelocity = Vector3.zero
-                hum.AutoRotate = true
-            end
-        end
-    end
-
     for i,v in cons do
-        if v then
+        if v and cons[i] == cons.antiaimcon then
+            cons[i]:Disconnect()
+            cons[i] = nil
+
+            if not modules.characterreplicationcontroller.SendingPackets and localplayer and localplayer.Character then
+                task.spawn(function()
+                    modules.characterreplicationcontroller.StartSending(modules.characterreplicationcontroller, localplayer.Character)
+                end)
+
+                local root = localplayer and localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
+                local hum = localplayer and localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid")
+
+                if root and hum then
+                    root.AssemblyLinearVelocity = Vector3.zero
+                    hum.AutoRotate = true
+                end
+            end
+        elseif v then
             cons[i]:Disconnect()
             cons[i] = nil
         end
