@@ -1,10 +1,15 @@
--- i just use a do end for everything to isolate tables and variables i dont want taking up registers
+if getgenv().loaded then return end
+
+getgenv().loaded = true
 
 if string.find(identifyexecutor(), "Xeno") or string.find(identifyexecutor(), "Solara") then
     game:GetService("Players").LocalPlayer:Kick("my executor kinda uncless😭👌 xeno and solara arent supported currently")
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/osukfcdays/sniperduelshake/refs/heads/main/workaround.luau"))()
+loadstring(request({
+    Url = "https://raw.githubusercontent.com/osukfcdays/sniperduelshake/refs/heads/main/workaround.luau"
+}).Body)()
+
 
 if not isfolder("sniperduelshake") or not isfile("sniperduelshake/version.txt") then
     local res = request({
@@ -98,38 +103,39 @@ local lighting = cloneref(game:GetService("Lighting")) -- use cloneref here but 
 local runserv = cloneref(game:GetService("RunService"))
 local players = cloneref(game:GetService("Players"))
 local httpservice = cloneref(game:GetService("HttpService"))
+local repstore = cloneref(game:GetService("ReplicatedStorage"))
+local workspace = cloneref(game:GetService("Workspace"))
+local camera = cloneref(workspace).CurrentCamera
 local localplayer = players.LocalPlayer
-local camera = cloneref(game:GetService("Workspace")).CurrentCamera
 
 local modules = {
-    weaponcontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("WeaponController"):WaitForChild("Gun")),
-    meleecontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("WeaponController"):WaitForChild("Melee")),
-    crosshaircontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CrosshairController")),
-    cameracontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CameraController")),
-    matchcontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController")),
-    toolcontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("ToolController")),
-    viewmodelcontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("ViewmodelController")),
-    charactercontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CharacterController")),
-    settingsmain = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("Settings"):WaitForChild("SettingsMain")),
-    effects = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("Effects")),
-    skinconfig = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("SkinConfig")),
-    killeffectsconfig = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("Effects"):WaitForChild("KillEffectsConfig")),
-    bufferutils = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Shared"):WaitForChild("BufferUtils")),
-    characterreplicationconfig = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("CharacterReplicationConfig")),
-    adjustcharacterlimbs = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Misc"):FindFirstChild("AdjustCharacterLimbs")),
-    characterreplicationcontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CharacterReplicationController")),
-    uicontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("UIController")),
-    replaycontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController"):WaitForChild("MatchReplay")),
-    matchendscreen = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController"):WaitForChild("MatchEndScreen")),
-    matchreplay = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController"):WaitForChild("MatchReplay")),
-    uitoolbar = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("ToolController"):WaitForChild("UIToolbar")),
-    replpos = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):WaitForChild("Character"):WaitForChild("CustomCharacterReplication"):WaitForChild("ReplPos"),
-    globalmatchmakingconfig = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("Misc"):WaitForChild("GlobalMatchmakingConfig")),
-    globalmatchmakingcontroller = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("GlobalMatchmakingController")),
-    networkshared = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Shared"):WaitForChild("NetworkShared")),
-    miscremotelistener = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MiscRemoteListener")),
-    killeffectdefault = require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("Effects"):WaitForChild("KillEffectsConfig"))._DEFAULT,
-    loadcharacterviewport = debug.getupvalue(require(game:GetService("ReplicatedStorage"):FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("UIController")).SetupMatchPlayers, 4),
+    weaponcontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("WeaponController"):WaitForChild("Gun")),
+    meleecontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("WeaponController"):WaitForChild("Melee")),
+    crosshaircontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CrosshairController")),
+    cameracontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CameraController")),
+    matchcontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController")),
+    toolcontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("ToolController")),
+    viewmodelcontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("ViewmodelController")),
+    charactercontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CharacterController")),
+    settingsmain = require(repstore:FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("Settings"):WaitForChild("SettingsMain")),
+    effects = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("Effects")),
+    skinconfig = require(repstore:FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("SkinConfig")),
+    killeffectsconfig = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("Effects"):WaitForChild("KillEffectsConfig")),
+    bufferutils = require(repstore:FindFirstChild("Modules"):WaitForChild("Shared"):WaitForChild("BufferUtils")),
+    characterreplicationconfig = require(repstore:FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("CharacterReplicationConfig")),
+    adjustcharacterlimbs = require(repstore:FindFirstChild("Modules"):WaitForChild("Misc"):FindFirstChild("AdjustCharacterLimbs")),
+    characterreplicationcontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("CharacterReplicationController")),
+    uicontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("UIController")),
+    replaycontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController"):WaitForChild("MatchReplay")),
+    matchendscreen = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController"):WaitForChild("MatchEndScreen")),
+    matchreplay = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MatchController"):WaitForChild("MatchReplay")),
+    uitoolbar = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("ToolController"):WaitForChild("UIToolbar")),
+    replpos = repstore:FindFirstChild("Remotes"):WaitForChild("Character"):WaitForChild("CustomCharacterReplication"):WaitForChild("ReplPos"),
+    globalmatchmakingconfig = require(repstore:FindFirstChild("Modules"):WaitForChild("Configs"):WaitForChild("Misc"):WaitForChild("GlobalMatchmakingConfig")),
+    globalmatchmakingcontroller = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("GlobalMatchmakingController")),
+    networkshared = require(repstore:FindFirstChild("Modules"):WaitForChild("Shared"):WaitForChild("NetworkShared")),
+    miscremotelistener = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("MiscRemoteListener")),
+    killeffectdefault = require(repstore:FindFirstChild("Modules"):WaitForChild("Controllers"):WaitForChild("Effects"):WaitForChild("KillEffectsConfig"))._DEFAULT,
 }
 
 local ogfuncs = {
@@ -202,10 +208,10 @@ local lightingtbl = {
     },
 
     oldclouds = {
-        Cover = (game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover),
-        Density = (game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density),
-        Color = (game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color),
-        Enabled = (game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled)
+        Cover = (workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover),
+        Density = (workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density),
+        Color = (workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color),
+        Enabled = (workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled)
     },
 
     oldskybox = {
@@ -296,11 +302,20 @@ local viewmodel = {
     armmaterial = Enum.Material.Plastic,
 }
 
+local movement = {
+    nojumpcooldown = false,
+    speed = 18,
+    autohop = false,
+    autohopon = false,
+    velocitymovement = false,
+}
+
 local misctbl = {
     autoreload = false,
     lastreload = 0,
     lastupdate = 0,
     executeamount = 0,
+    aspectscale = 0,
     firstpersoncframe = nil,
 }
 
@@ -313,7 +328,6 @@ lightingtbl.newbloom = table.clone(lightingtbl.oldbloom)
 lightingtbl.newatmosphere = table.clone(lightingtbl.oldatmosphere)
 lightingtbl.newcolorcorrection = table.clone(lightingtbl.oldcolorcorrection)
 lightingtbl.newsunrays = table.clone(lightingtbl.oldsunrays)
-
 
 local function updatehighlights()
     if not modules.matchcontroller.CurrentMatch then return end
@@ -373,7 +387,7 @@ local function setplatform(platform)
     local number = (platform == "Desktop" and 1) or (platform == "Mobile" and 2) or 3
     local emoji = modules.networkshared.Constants.PlatformEmojis[number].emoji
 
-    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Other"):WaitForChild("GetPlatform").OnClientInvoke = function() return buffer end
+    repstore:WaitForChild("Remotes"):WaitForChild("Other"):WaitForChild("GetPlatform").OnClientInvoke = function() return buffer end
     modules.miscremotelistener.GetPlatform = function() return buffer end -- ts lwk just making it return everyones device as spoofed one i think
     modules.settingsmain.GetPlatform = function() return platform end
 
@@ -462,6 +476,23 @@ do
         table.insert(blacklist, v)
 
         params.FilterDescendantsInstances = blacklist
+
+        if movement.nojumpcooldown then -- mise well use this for ts also
+            local hum = v:WaitForChild("Humanoid", 5)
+
+            if cons.nojumpcooldowncon then
+                cons.nojumpcooldowncon:Disconnect()
+                cons.nojumpcooldowncon = nil
+            end
+
+            if not hum then return end
+
+            cons.nojumpcooldowncon = hum and hum:GetPropertyChangedSignal("JumpPower"):Connect(function()
+                if movement.nojumpcooldown and hum.JumpPower < 35.41699981689453 then
+                    hum.JumpPower = 35.41699981689453
+                end
+            end)
+        end
     end)
 
     local function getverticies(character)
@@ -862,7 +893,7 @@ end
 do
     main:AddDivider("knifebot")
     
-    local swing = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):WaitForChild("Weapons"):WaitForChild("Melee"):WaitForChild("Swing")
+    local swing = repstore:FindFirstChild("Remotes"):WaitForChild("Weapons"):WaitForChild("Melee"):WaitForChild("Swing")
     local lastswing = 0
     local maxdistance = 5
     local spawncframe = nil
@@ -991,14 +1022,14 @@ do
         end
     end
 
-    cons.roundendcon = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):WaitForChild("Match").RoundConcluded.OnClientEvent:Connect(function()
+    cons.roundendcon = repstore:FindFirstChild("Remotes"):WaitForChild("Match").RoundConcluded.OnClientEvent:Connect(function()
         if not knifekillall or not knifebot then return end
         if not modules.matchcontroller.CurrentMatch then return end
         if modules.matchcontroller.CurrentMatch.CurRoundCnt == 1 then return end
         teleporttospawn()
     end)
 
-    cons.roundstartcon = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):WaitForChild("Match").NewRound.OnClientEvent:Connect(function(v1, v2, spawnpos)
+    cons.roundstartcon = repstore:FindFirstChild("Remotes"):WaitForChild("Match").NewRound.OnClientEvent:Connect(function(v1, v2, spawnpos)
         if spawnpos then
             spawncframe = CFrame.new(spawnpos)
         end
@@ -1027,11 +1058,12 @@ do
                     local tool = localplayer.Character:FindFirstChildOfClass("Tool")
 
                     if not selfroot then return end
+                    if not tool then return end
                     if not tool:HasTag("Melee") then return end
 
                     if modules.matchcontroller.CurrentMatch and modules.matchcontroller.CurrentMatch.Players then
                         for _,v in modules.matchcontroller.CurrentMatch.Players do
-                            if not modules.matchcontroller:IsPlayerFriendly(v) and v ~= localplayer then 
+                            if v ~= localplayer and not modules.matchcontroller:IsPlayerFriendly(v) then 
                                 if not v.Character then continue end
 
                                 local root = v and v.Character and v.Character:FindFirstChild("HumanoidRootPart")
@@ -1141,119 +1173,111 @@ do
     main:AddDivider("other")
 end
 
-do
-    local movement = {
-        nojumpcooldown = false,
-        speed = 18,
-        autohop = false,
-        autohopon = false,
-        velocitymovement = false,
-    }
+other:AddToggle('movement',{
+    Default = false,
+    Text = "enabled",
+    Tooltip = "enables cframe movement",
+    Callback = function(v) 
+        if v then
+            cons.movementcon = runserv.PreRender:Connect(function(dt)
+                if localplayer and localplayer.Character then
+                    local hum = localplayer and localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid")
+                    local root = localplayer and localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
 
-    modules.charactercontroller.Run = function(self, ...)
-        local character = self and self.Character
-        local hum = character and character:FindFirstChildOfClass("Humanoid")
+                    if hum and root then
+                        if movement.velocitymovement then
+                            root.Velocity = Vector3.new(hum.MoveDirection.X * movement.speed, root.Velocity.Y, hum.MoveDirection.Z * movement.speed)
+                        else
+                            root.Velocity = Vector3.new(0, root.Velocity.Y, 0)
+                            root.CFrame += (hum.MoveDirection * (movement.speed / (1 / dt)))
+                        end
+                        hum.Jump = (movement.autohopon and movement.autohop) or hum.Jump
+                    end
+                end
+            end)
+        else
+            if cons.movementcon then
+                cons.movementcon:Disconnect()
+                cons.movementcon = nil
+            end
+        end
+    end
+}):AddKeyPicker('movementkeybind',{
+    Text = "movement",
+    SyncToggleState = true,
+    Default = "None",
+    Mode = "Toggle",
+    NoUI = false,
+})
 
-        if hum then
+other:AddSlider('movementspeed',{
+    Min = 0,
+    Max = 65,
+    Rounding = 0,
+    Default = 18,
+    Compact = true,
+    Text = "speed",
+    Tooltip = "speed at which cframe movement will move at",
+    Callback = function(v) 
+        movement.speed = v
+    end
+})
+
+other:AddToggle('velocitymovement',{
+    Default = false,
+    Text = "velocity",
+    Tooltip = "makes cframe movement use velocity instead of directly setting the cframe",
+    Callback = function(v) 
+        movement.velocitymovement = v 
+    end
+})
+
+other:AddToggle('nojumpcooldown',{
+    Default = false,
+    Text = "no jump cooldown",
+    Tooltip = "removes the cooldown between jumps in matches",
+    Callback = function(v) 
+        movement.nojumpcooldown = v 
+
+        if v then
+            local hum = localplayer and localplayer.Character and localplayer.Character:WaitForChild("Humanoid", 5)
+
             if cons.nojumpcooldowncon then
                 cons.nojumpcooldowncon:Disconnect()
                 cons.nojumpcooldowncon = nil
             end
+
+            if not hum then return end
 
             cons.nojumpcooldowncon = hum:GetPropertyChangedSignal("JumpPower"):Connect(function()
                 if movement.nojumpcooldown and hum.JumpPower < 35.41699981689453 then
                     hum.JumpPower = 35.41699981689453
                 end
             end)
-        end
-
-        return ogfuncs.ogrun(self, ...)
-    end
-
-    other:AddToggle('movement',{
-        Default = false,
-        Text = "enabled",
-        Tooltip = "enables cframe movement",
-        Callback = function(v) 
-            if v then
-                cons.movementcon = runserv.PreRender:Connect(function(dt)
-                    if localplayer and localplayer.Character then
-                        local hum = localplayer and localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid")
-                        local root = localplayer and localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
-
-                        if hum and root then
-                            if movement.velocitymovement then
-                                root.Velocity = Vector3.new(hum.MoveDirection.X * movement.speed, root.Velocity.Y, hum.MoveDirection.Z * movement.speed)
-                            else
-                                root.Velocity = Vector3.new(0, root.Velocity.Y, 0)
-                                root.CFrame += (hum.MoveDirection * (movement.speed / (1 / dt)))
-                            end
-                            hum.Jump = (movement.autohopon and movement.autohop) or hum.Jump
-                        end
-                    end
-                end)
-            else
-                if cons.movementcon then
-                    cons.movementcon:Disconnect()
-                    cons.movementcon = nil
-                end
+        else
+            if cons.nojumpcooldowncon then
+                cons.nojumpcooldowncon:Disconnect()
+                cons.nojumpcooldowncon = nil
             end
         end
-    }):AddKeyPicker('movementkeybind',{
-        Text = "movement",
-        SyncToggleState = true,
-        Default = "None",
-        Mode = "Toggle",
-        NoUI = false,
-    })
+    end
+})
 
-    other:AddSlider('movementspeed',{
-        Min = 0,
-        Max = 65,
-        Rounding = 0,
-        Default = 18,
-        Compact = true,
-        Text = "speed",
-        Tooltip = "speed at which cframe movement will move at",
-        Callback = function(v) 
-            movement.speed = v
-        end
-    })
-
-    other:AddToggle('velocitymovement',{
-        Default = false,
-        Text = "velocity",
-        Tooltip = "makes cframe movement use velocity instead of directly setting the cframe",
-        Callback = function(v) 
-            movement.velocitymovement = v 
-        end
-    })
-
-    other:AddToggle('nojumpcooldown',{
-        Default = false,
-        Text = "no jump cooldown",
-        Tooltip = "removes the cooldown between jumps in matches",
-        Callback = function(v) 
-            movement.nojumpcooldown = v 
-        end
-    })
-
-    other:AddToggle('autojump',{
-        Default = false,
-        Text = "auto jump",
-        Tooltip = "automatically makes your character jump (right-click to make it toggle/hold to make it mimic auto-bhop)",
-        Callback = function(v) 
-            movement.autohopon = v
-            movement.autohop = v
-        end
-    }):AddKeyPicker('autojumpkeybind',{
-        Text = "auto bhop",
-        SyncToggleState = true,
-        Default = "None",
-        Mode = "Toggle",
-        NoUI = false,
-    })
-end
+other:AddToggle('autojump',{
+    Default = false,
+    Text = "auto jump",
+    Tooltip = "automatically makes your character jump (right-click to make it toggle/hold to make it mimic auto-bhop)",
+    Callback = function(v) 
+        movement.autohopon = v
+        movement.autohop = v
+    end
+}):AddKeyPicker('autojumpkeybind',{
+    Text = "auto bhop",
+    SyncToggleState = true,
+    Default = "None",
+    Mode = "Toggle",
+    NoUI = false,
+})
 
 do
     other:AddDivider("antiaim")
@@ -1330,9 +1354,11 @@ do
 
                     local root = localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
                     local hum = localplayer.Character and localplayer.Character:FindFirstChild("Humanoid")
+
                     if not root or not hum then return end
 
                     local lookvector = (misctbl.firstpersoncframe and misctbl.firstpersoncframe.LookVector) or camera.CFrame.LookVector
+                    local ogidentity = getthreadidentity()
 
                     local spoofedcframe
                     local horizontal
@@ -1362,6 +1388,7 @@ do
                         pcall(function()
                             modules.adjustcharacterlimbs(localplayer.Character, spoofedlookvector, false, false, false)
                         end)
+                        setthreadidentity(ogidentity)
 
                         hum.AutoRotate = false
 
@@ -1376,6 +1403,7 @@ do
                             modules.adjustcharacterlimbs(localplayer.Character, flatlook, false, false, false)
                             modules.adjustcharacterlimbs(localplayer.Character, flatlook, false, true, false)
                         end)
+                        setthreadidentity(ogidentity)
 
                         if yaw == "spin" then
                             hum.AutoRotate = false
@@ -1394,21 +1422,20 @@ do
                 if localplayer and localplayer.Character then
                     local root = localplayer and localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
                     local hum = localplayer and localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid")
+                    local ogidentity = getthreadidentity()
+                    local lookvector = (misctbl.firstpersoncframe and misctbl.firstpersoncframe.LookVector) or camera.CFrame.LookVector
 
                     if not hum or not root then return end
 
-                    local lookvector = (misctbl.firstpersoncframe and misctbl.firstpersoncframe.LookVector) or camera.CFrame.LookVector
-
                     root.AssemblyAngularVelocity = Vector3.zero
-
                     hum.AutoRotate = true
-
                     localplayer.Character:SetAttribute("cv_lv", nil)
 
                     pcall(function()
                         modules.adjustcharacterlimbs(localplayer.Character, Vector3.new(lookvector.X, 0, lookvector.Z), false, false, false)
                         modules.adjustcharacterlimbs(localplayer.Character, Vector3.new(lookvector.X, 0, lookvector.Z), false, true, false)
                     end)
+                    setthreadidentity(ogidentity)
 
                     lastcframe = nil
 
@@ -1877,12 +1904,14 @@ do
 
                 if localplayer.Character then
                     local flatlook = Vector3.new(camera.CFrame.LookVector.X, 0, camera.CFrame.LookVector.Z).Unit
+                    local ogidentity = getthreadidentity()
                     localplayer.Character:SetAttribute("cv_lv", flatlook)
 
                     pcall(function()
                         modules.adjustcharacterlimbs(localplayer.Character, flatlook, false, false, false)
                         modules.adjustcharacterlimbs(localplayer.Character, flatlook, false, true, false)
                     end)
+                    setthreadidentity(ogidentity)
                 end
             end
         end
@@ -2083,7 +2112,7 @@ do
         Func = function()
             if #selectedgamemodes > 0 then
                 modules.globalmatchmakingcontroller.SelectedGameModes = selectedgamemodes
-                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("QueueUp"):InvokeServer(queuetype, selectedgamemodes, mobileconsoleonly)
+                repstore:WaitForChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("QueueUp"):InvokeServer(queuetype, selectedgamemodes, mobileconsoleonly)
             end
         end,
         DoubleClick = false,
@@ -2094,7 +2123,7 @@ do
         Func = function()
             if modules.globalmatchmakingcontroller.CancelQueue then
                 modules.globalmatchmakingcontroller:CancelQueue()
-                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("CancelQueue"):FireServer()
+                repstore:WaitForChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("CancelQueue"):FireServer()
             end
         end,
         DoubleClick = false,
@@ -2106,10 +2135,10 @@ do
         Text = "auto queue",
         Callback = function(v)
             if v then
-                cons.autoqueuecon = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):WaitForChild("Match"):WaitForChild("EndMatch").OnClientEvent:Connect(function()
+                cons.autoqueuecon = repstore:FindFirstChild("Remotes"):WaitForChild("Match"):WaitForChild("EndMatch").OnClientEvent:Connect(function()
                     if #selectedgamemodes > 0 then
                         modules.globalmatchmakingcontroller.SelectedGameModes = selectedgamemodes
-                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("QueueUp"):InvokeServer(queuetype, selectedgamemodes, mobileconsoleonly)
+                        repstore:WaitForChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("QueueUp"):InvokeServer(queuetype, selectedgamemodes, mobileconsoleonly)
                     end
                 end)
             else
@@ -2131,100 +2160,94 @@ do
     })
 end
 
-do
-    miscmain:AddDivider("device")
+miscmain:AddDivider("device")
 
-    miscmain:AddToggle('devicespoofing',{
-        Tooltip = "spoofs your device to appear as the selected one",
-        Default = false,
-        Text = "spoof device",
-        Callback = function(v)
-            devicetbl.spoofplatform = v
+miscmain:AddToggle('devicespoofing',{
+    Tooltip = "spoofs your device to appear as the selected one",
+    Default = false,
+    Text = "spoof device",
+    Callback = function(v)
+        devicetbl.spoofplatform = v
 
+        if v then
+            setplatform(devicetbl.device)
+        else
+            if devicetbl.ogplatform == 1 then
+                setplatform("Desktop")
+            elseif devicetbl.ogplatform == 2 then
+                setplatform("Mobile")
+            elseif devicetbl.ogplatform == 3 then
+                setplatform("Console")
+            end
+        end
+    end
+})
+
+miscmain:AddToggle('consolemobilequeue',{
+    Tooltip = "lets you queue with console/mobile players only",
+    Default = false,
+    Text = "console/mobile queue only",
+    Callback = function(v)
+        if devicetbl.spoofplatform then
             if v then
-                setplatform(devicetbl.device)
+                repstore:FindFirstChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("SetMobileConsoleOnly"):FireServer(true)
             else
-                if devicetbl.ogplatform == 1 then
-                    setplatform("Desktop")
-                elseif devicetbl.ogplatform == 2 then
-                    setplatform("Mobile")
-                elseif devicetbl.ogplatform == 3 then
-                    setplatform("Console")
-                end
+                repstore:FindFirstChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("SetMobileConsoleOnly"):FireServer(false)
             end
         end
-    })
+    end
+})
 
-    miscmain:AddToggle('consolemobilequeue',{
-        Tooltip = "lets you queue with console/mobile players only",
-        Default = false,
-        Text = "console/mobile queue only",
-        Callback = function(v)
-            if devicetbl.spoofplatform then
-                if v then
-                    game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("SetMobileConsoleOnly"):FireServer(true)
-                else
-                    game:GetService("ReplicatedStorage"):FindFirstChild("Remotes"):WaitForChild("Match"):WaitForChild("Matchmaking"):WaitForChild("Global"):WaitForChild("SetMobileConsoleOnly"):FireServer(false)
-                end
+miscmain:AddDropdown('selecteddevice',{
+    Tooltip = "spoofs your device to the selected one",
+    Default = "Desktop",
+    Multi = false,
+    Values = {"Desktop", "Mobile", "Console"},
+    Text = "device",
+    Callback = function(v)
+        devicetbl.device = v
+
+        if devicetbl.spoofplatform and devicetbl.device then
+            setplatform(devicetbl.device)
+        end
+    end
+})
+
+miscmain:AddDivider("aspect ratio")
+
+miscmain:AddToggle('aspectratio', {
+    Default = false,
+    Text = "aspect ratio",
+    Callback = function(v)
+        library.Options.aspectscale:SetVisible(v)
+
+        if v then
+            cons.aspectratiocon = runserv.RenderStepped:Connect(function()
+                if camera.CameraType ~= Enum.CameraType.Custom then return end
+
+                camera.CFrame = camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, misctbl.aspectscale, 0, 0, 0, 1)
+            end)
+        else
+            if cons.aspectratiocon then
+                cons.aspectratiocon:Disconnect()
+                cons.aspectratiocon = nil
             end
         end
-    })
+    end
+})
 
-    miscmain:AddDropdown('selecteddevice',{
-        Tooltip = "spoofs your device to the selected one",
-        Default = "Desktop",
-        Multi = false,
-        Values = {"Desktop", "Mobile", "Console"},
-        Text = "device",
-        Callback = function(v)
-            devicetbl.device = v
-
-            if devicetbl.spoofplatform and devicetbl.device then
-                setplatform(devicetbl.device)
-            end
-        end
-    })
-end
-
-do
-    miscmain:AddDivider("aspect ratio")
-
-    local aspectscale = 1
-
-    miscmain:AddToggle('aspectratio', {
-        Default = false,
-        Text = "aspect ratio",
-        Callback = function(v)
-            library.Options.aspectscale:SetVisible(v)
-
-            if v then
-                cons.aspectratiocon = runserv.RenderStepped:Connect(function()
-                    if camera.CameraType ~= Enum.CameraType.Custom then return end
-
-                    camera.CFrame = camera.CFrame * CFrame.new(0, 0, 0, 1, 0, 0, 0, aspectscale, 0, 0, 0, 1)
-                end)
-            else
-                if cons.aspectratiocon then
-                    cons.aspectratiocon:Disconnect()
-                    cons.aspectratiocon = nil
-                end
-            end
-        end
-    })
-
-    miscmain:AddSlider('aspectscale', {
-        Min = 0.1,
-        Max = 1,
-        Rounding = 2,
-        Compact = true,
-        Default = aspectscale,
-        Text = "vertical",
-        Visible = false,
-        Callback = function(v)
-            aspectscale = v
-        end,
-    })
-end
+miscmain:AddSlider('aspectscale', {
+    Min = 0.1,
+    Max = 1,
+    Rounding = 2,
+    Compact = true,
+    Default = misctbl.aspectscale,
+    Text = "vertical",
+    Visible = false,
+    Callback = function(v)
+        misctbl.aspectscale = v
+    end,
+})
 
 do -- ts is beyond scuffed bro
     local customtracer = false
@@ -3301,16 +3324,16 @@ do
         Callback = function(v)
             lightingtbl.cloudsoverride = v
 
-            if v and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = lightingtbl.newclouds.Cover
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = lightingtbl.newclouds.Density
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = lightingtbl.newclouds.Color
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = lightingtbl.newclouds.Enabled
-            elseif not v and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = lightingtbl.oldclouds.Cover
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = lightingtbl.oldclouds.Density
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = lightingtbl.oldclouds.Color
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = lightingtbl.oldclouds.Enabled
+            if v and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = lightingtbl.newclouds.Cover
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = lightingtbl.newclouds.Density
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = lightingtbl.newclouds.Color
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = lightingtbl.newclouds.Enabled
+            elseif not v and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = lightingtbl.oldclouds.Cover
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = lightingtbl.oldclouds.Density
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = lightingtbl.oldclouds.Color
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = lightingtbl.oldclouds.Enabled
             end
         end
     })
@@ -3323,8 +3346,8 @@ do
         Callback = function(v)
             lightingtbl.oldclouds.Enabled = v
 
-            if lightingtbl.cloudsoverride and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = v
+            if lightingtbl.cloudsoverride and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = v
             end
         end
     })
@@ -3339,8 +3362,8 @@ do
         Callback = function(v) 
             lightingtbl.newclouds.Cover = v
 
-            if lightingtbl.cloudsoverride and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = v
+            if lightingtbl.cloudsoverride and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = v
             end
         end
     })
@@ -3355,8 +3378,8 @@ do
         Callback = function(v) 
             lightingtbl.newclouds.Density = v
 
-            if lightingtbl.cloudsoverride and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = v
+            if lightingtbl.cloudsoverride and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = v
             end
         end
     })
@@ -3367,8 +3390,8 @@ do
         Callback = function(v)
             lightingtbl.oldclouds.Color = v
 
-            if lightingtbl.cloudsoverride and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-                game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = v
+            if lightingtbl.cloudsoverride and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
+                workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = v
             end
         end
     })
@@ -3392,14 +3415,15 @@ cons.viewmodelgetcon = camera.ChildAdded:Connect(function(v)
     if v.Name == "Viewmodel" then
         viewmodel.currentviewmodel = v
 
-        if viewmodel.override and viewmodel.currentviewmodel then
-            viewmodel.currentviewmodel["Left Arm"].Color = viewmodel.armcolor
-            viewmodel.currentviewmodel["Right Arm"].Color = viewmodel.armcolor
-            viewmodel.currentviewmodel["Left Arm"].Transparency = viewmodel.armtransparency
-            viewmodel.currentviewmodel["Right Arm"].Transparency = viewmodel.armtransparency
-            viewmodel.currentviewmodel["Left Arm"].Material = viewmodel.armmaterial
-            viewmodel.currentviewmodel["Right Arm"].Material = viewmodel.armmaterial
-        end
+        if not viewmodel.override or not viewmodel.currentviewmodel then return end
+        if not viewmodel.currentviewmodel:FindFirstChild("Left Arm") or not viewmodel.currentviewmodel:FindFirstChild("Right Arm") then return end
+
+        viewmodel.currentviewmodel["Left Arm"].Color = viewmodel.armcolor
+        viewmodel.currentviewmodel["Right Arm"].Color = viewmodel.armcolor
+        viewmodel.currentviewmodel["Left Arm"].Transparency = viewmodel.armtransparency
+        viewmodel.currentviewmodel["Right Arm"].Transparency = viewmodel.armtransparency
+        viewmodel.currentviewmodel["Left Arm"].Material = viewmodel.armmaterial
+        viewmodel.currentviewmodel["Right Arm"].Material = viewmodel.armmaterial
     end
 end)
 
@@ -3432,7 +3456,7 @@ cons.lightingcon = lighting.Changed:Connect(function(v)
     end
 end)
 
-cons.cloudcon = game:GetService("Workspace"):FindFirstChild("Terrain").ChildAdded:Connect(function(v)
+cons.cloudcon = workspace:FindFirstChild("Terrain").ChildAdded:Connect(function(v)
     if v:IsA("Clouds") then
         lightingtbl.oldclouds.Color = v.Color
         lightingtbl.oldclouds.Cover = v.Cover
@@ -3554,8 +3578,8 @@ config:AddToggle("onteleport", {
                         end
 
                         local players = cloneref(game:GetService("Players"))
-                        local LocalPlayer = players.LocalPlayer or players.PlayerAdded:Wait()
-                        local modules = game:GetService("ReplicatedStorage"):WaitForChild("Modules", 30)
+                        local localplayer = players.LocalPlayer or players.PlayerAdded:Wait()
+                        local modules = cloneref(game:GetService("ReplicatedStorage")):WaitForChild("Modules", 30)
 
                         if modules then
                             local mainmodule = modules:WaitForChild("Main", 30)
@@ -3687,6 +3711,14 @@ library:OnUnload(function()
 
                 local root = localplayer and localplayer.Character and localplayer.Character:FindFirstChild("HumanoidRootPart")
                 local hum = localplayer and localplayer.Character and localplayer.Character:FindFirstChildOfClass("Humanoid")
+                local lookvector = (misctbl.firstpersoncframe and misctbl.firstpersoncframe.LookVector) or camera.CFrame.LookVector
+                local ogidentity = getthreadidentity()
+
+                pcall(function()
+                    modules.adjustcharacterlimbs(localplayer.Character, Vector3.new(lookvector.X, 0, lookvector.Z), false, false, false)
+                    modules.adjustcharacterlimbs(localplayer.Character, Vector3.new(lookvector.X, 0, lookvector.Z), false, true, false)
+                end)
+                setthreadidentity(ogidentity)
 
                 if root and hum then
                     root.AssemblyLinearVelocity = Vector3.zero
@@ -3746,11 +3778,11 @@ library:OnUnload(function()
         lighting.ShadowSoftness = lightingtbl.oldlighting.ShadowSoftness
     end
 
-    if lightingtbl.cloudsoverride and game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
-        game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = lightingtbl.oldclouds.Cover
-        game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = lightingtbl.oldclouds.Density
-        game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = lightingtbl.oldclouds.Color
-        game:GetService("Workspace"):WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = lightingtbl.oldclouds.Enabled
+    if lightingtbl.cloudsoverride and workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds") then
+        workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Cover = lightingtbl.oldclouds.Cover
+        workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Density = lightingtbl.oldclouds.Density
+        workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Color = lightingtbl.oldclouds.Color
+        workspace:WaitForChild("Terrain"):FindFirstChildOfClass("Clouds").Enabled = lightingtbl.oldclouds.Enabled
     end
     
     if lightingtbl.bloomoverride and lighting:FindFirstChildOfClass("BloomEffect") then
@@ -3815,6 +3847,8 @@ library:OnUnload(function()
     game:GetService("SoundService"):FindFirstChild("Game"):WaitForChild("Local"):WaitForChild("Hitmarker"):WaitForChild("HeadshotKill"):SetAttribute("og_vol", oghitsounds.headshotvolume)
     game:GetService("SoundService"):FindFirstChild("Game"):WaitForChild("Local"):WaitForChild("Hitmarker"):WaitForChild("Kill"):SetAttribute("og_vol", oghitsounds.hitsoundvolume)
     game:GetService("SoundService"):FindFirstChild("Game"):WaitForChild("Local"):WaitForChild("Hitmarker"):WaitForChild("Hitmarker"):SetAttribute("og_vol", oghitsounds.hitmarkervolume)
+
+    getgenv().loaded = false
 
     library.Unloaded = true
 end)
