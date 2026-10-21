@@ -35,4 +35,6 @@ run_on_actor(getactors()[1], [==[
             pcall(c.Disconnect, c)
         end
     end
+
+    print("ok")
 ]==])
