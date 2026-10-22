@@ -34,7 +34,7 @@ run_on_actor(actor, [==[
     local found1 = false
     local found2 = false
 
-    local ops = {
+    local targets = {
         [840] = true,
         [65]  = true,
         [75]  = true,
@@ -72,7 +72,7 @@ run_on_actor(actor, [==[
                     if ok1 and type(ops) == "table" and not table.isfrozen(ops) and type(rawget(ops, 1)) == "number" then
                         local n = rawlen(ops)
 
-                        if ops[n] then
+                        if targets[n] then
                             ops[1] = 49
                             if n == 840 then found1 = true end
                             if n == 65 then found2 = true end
@@ -112,4 +112,5 @@ run_on_actor(actor, [==[
 ]==], id)
 
 channel.Event:Wait()
+
 getgenv().workaround = true
